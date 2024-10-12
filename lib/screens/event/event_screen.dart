@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gitmate/component/colors.dart';
 import 'package:gitmate/screens/widget/custom_appbar.dart';
-import 'package:gitmate/screens/widget/custom_floating_action_button.dart';
 
 class EventScreen extends StatefulWidget {
   const EventScreen({super.key});
