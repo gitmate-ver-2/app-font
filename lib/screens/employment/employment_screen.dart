@@ -88,6 +88,19 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
     });
   }
 
+  Future<void> _refreshData() async {
+    // 새로고침할 때 데이터를 갱신하는 로직 추가 (예: 서버에서 최신 데이터를 가져오기)
+    // 여기서는 2초 대기하는 예시를 사용했습니다.
+    await Future.delayed(const Duration(seconds: 2));
+
+    // 데이터 갱신 후 UI를 업데이트합니다.
+    if (mounted) {
+      setState(() {
+        // 필요한 데이터를 새로고침 후 업데이트
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,21 +198,26 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 )
-              : ListView.builder(
-                  itemCount: filteredCompanies.length,
-                  itemBuilder: (context, index) {
-                    final company = filteredCompanies[index];
-                    return CompanyCard(
-                      company: company,
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text('Tapped on ${company.companyName}')),
-                        );
-                      },
-                    );
-                  },
+              : RefreshIndicator(
+                  backgroundColor: AppColors.BACKGROUNDCOLOR,
+                  color: AppColors.MAINCOLOR,
+                  onRefresh: _refreshData,
+                  child: ListView.builder(
+                    itemCount: filteredCompanies.length,
+                    itemBuilder: (context, index) {
+                      final company = filteredCompanies[index];
+                      return CompanyCard(
+                        company: company,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('Tapped on ${company.companyName}')),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
     );
   }

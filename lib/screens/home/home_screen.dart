@@ -1,6 +1,8 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gitmate/component/colors.dart';
+import 'package:gitmate/screens/auth/sign_in_screen.dart';
 import 'package:gitmate/screens/community/community_screen.dart';
 import 'package:gitmate/screens/employment/employment_screen.dart';
 import 'package:gitmate/screens/event/event_screen.dart';
@@ -18,6 +20,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final List<String> imgList = [
     'assets/images/event_images/event(1).png',
     'assets/images/event_images/event(2).png',
@@ -27,8 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Map<String, String>> popularPosts = [
-    {'title': 'Flutter 강의', 'image': 'assets/images/event_images/event(1).png'},
-    {'title': 'Dart 소개', 'image': 'assets/images/event_images/event(2).png'},
+    {'title': '고퍼콘 행사!', 'image': 'assets/images/image(1).jpeg'},
+    {'title': '이정주의 Flutter Class', 'image': 'assets/images/image(2).png'},
     {
       'title': 'Hackathon 참가',
       'image': 'assets/images/event_images/event(3).jpg'
@@ -39,33 +43,67 @@ class _HomeScreenState extends State<HomeScreen> {
   // 더미 데이터: 진행 중인 행사
   final List<Map<String, String>> ongoingEvents = [
     {
-      'title': 'Flutter Workshop',
-      'image': 'assets/images/event_images/event(5).png'
+      'title': 'Googel I/O Ex 2024 Incheon',
+      'image': 'assets/images/event_images/event(4).gif'
     },
     {
-      'title': 'Tech Meetup',
+      'title': 'Future<Flutter> 2024',
+      'image': 'assets/images/event_images/event(3).jpg'
+    },
+    {
+      'title': 'HyperApp 2024',
       'image': 'assets/images/event_images/event(1).png'
     },
-    {'title': 'AI Summit', 'image': 'assets/images/event_images/event(2).png'},
+    {
+      'title': 'Devcon 2024',
+      'image': 'assets/images/event_images/event(2).png'
+    },
   ];
 
   // 더미 데이터: 최신 채용 정보
   final List<Map<String, String>> latestJobs = [
-    {
-      'title': 'Frontend Developer',
-      'image': 'assets/images/event_images/event(3).jpg'
-    },
-    {
-      'title': 'Backend Developer',
-      'image': 'assets/images/event_images/event(4).gif'
-    },
-    {
-      'title': 'Flutter Developer',
-      'image': 'assets/images/event_images/event(5).png'
-    },
+    {'title': '백프로 채용', 'image': 'assets/company/company(1).png'},
+    {'title': '파마브로스', 'image': 'assets/company/company(2).png'},
+    {'title': '알고케어', 'image': 'assets/company/company(3).png'},
   ];
 
   int _currentIndex = 0;
+
+  Future<void> _signOut() async {
+    await _auth.signOut();
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const SignInScreen(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+      (Route<dynamic> route) => false,
+    );
+  }
+
+  Future<void> _refreshData() async {
+    // 새로고침할 때 데이터를 갱신하는 로직 추가 (예: 서버에서 최신 데이터를 가져오기)
+    // 여기서는 2초 대기하는 예시를 사용했습니다.
+    await Future.delayed(const Duration(seconds: 2));
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const HomeScreen(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+      (Route<dynamic> route) => false,
+    );
+
+    if (mounted) {
+      setState(() {
+        // 필요한 데이터를 새로고침 후 업데이트
+      });
+    }
+  }
 
   Future<void> _showLogoutDialog() async {
     return showDialog<void>(
@@ -78,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(10),
           ),
           title: const Text(
-            'Artistry 로그아웃',
+            'Gitmate 로그아웃',
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.w500,
@@ -112,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               onPressed: () {
                 Navigator.of(context).pop();
-                // _signOu();
+                _signOut();
               },
             ),
           ],
@@ -139,12 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: AppColors.MAINCOLOR,
               ),
               child: Text(
-                '설정',
+                '메뉴',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -163,9 +201,9 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.settings),
               title: const Text('설정'),
               onTap: () {
-                // 설정 페이지로 이동
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => SettingScreen()));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('접근할 수 없습니다.')),
+                );
               },
             ),
             const Divider(
@@ -184,225 +222,231 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  border: Border.symmetric(
-                      horizontal: BorderSide(width: 0.5, color: Colors.grey)),
-                ),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    CarouselSlider(
-                      options: CarouselOptions(
-                        height: MediaQuery.of(context).size.height * 0.25,
-                        viewportFraction: 1,
-                        autoPlay: true,
-                        autoPlayInterval: const Duration(seconds: 5),
-                        enlargeCenterPage: true,
-                        onPageChanged: (index, reason) {
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                        },
-                      ),
-                      items: imgList.map((item) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return Padding(
-                              padding: const EdgeInsets.all(0),
-                              child: Container(
-                                width: MediaQuery.of(context).size.width,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage(item),
-                                    fit: BoxFit.cover,
+        child: RefreshIndicator(
+          backgroundColor: AppColors.BACKGROUNDCOLOR,
+          color: AppColors.MAINCOLOR,
+          onRefresh: _refreshData,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    border: Border.symmetric(
+                        horizontal: BorderSide(width: 0.5, color: Colors.grey)),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      CarouselSlider(
+                        options: CarouselOptions(
+                          height: MediaQuery.of(context).size.height * 0.25,
+                          viewportFraction: 1,
+                          autoPlay: true,
+                          autoPlayInterval: const Duration(seconds: 5),
+                          enlargeCenterPage: true,
+                          onPageChanged: (index, reason) {
+                            setState(() {
+                              _currentIndex = index;
+                            });
+                          },
+                        ),
+                        items: imgList.map((item) {
+                          return Builder(
+                            builder: (BuildContext context) {
+                              return Padding(
+                                padding: const EdgeInsets.all(0),
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: AssetImage(item),
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 5.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: imgList.asMap().entries.map((entry) {
-                          return Container(
-                            width: 8.0,
-                            height: 8.0,
-                            margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(
-                                _currentIndex == entry.key ? 1.0 : 0.4,
-                              ),
-                            ),
+                              );
+                            },
                           );
                         }).toList(),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 15.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomCircleButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => CommunityScreen()),
-                        );
-                      },
-                      shape: BoxShape.rectangle,
-                      imagePath: 'assets/images/emojis/emoji(4).png',
-                      borderWidth: 0.5, // 테두리 두께
-                      borderRadius: 10.0, // 둥글기 (사각형일 경우만 적용)
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 6,
-                          offset: const Offset(2, 1), // 그림자 위치
-                        ),
-                      ],
-                      text: "커뮤니티",
-                      textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    CustomCircleButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EmploymentScreen()),
-                        );
-                      },
-                      shape: BoxShape.rectangle,
-                      imagePath: 'assets/images/emojis/emoji(2).png',
-                      borderWidth: 0.5, // 테두리 두께
-                      borderRadius: 10.0, // 둥글기 (사각형일 경우만 적용)
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 6,
-                          offset: const Offset(2, 1), // 그림자 위치
-                        ),
-                      ],
-                      text: "채용",
-                      textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.bold),
-                      padding: const EdgeInsets.all(3.0),
-                    ),
-                    CustomCircleButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EventScreen()),
-                        );
-                      },
-                      shape: BoxShape.rectangle,
-                      imagePath: 'assets/images/emojis/emoji(1).png',
-                      borderWidth: 0.5, // 테두리 두께
-                      borderRadius: 10.0, // 둥글기 (사각형일 경우만 적용)
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 6,
-                          offset: const Offset(2, 2), // 그림자 위치
-                        ),
-                      ],
-                      text: "행사",
-                      textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Builder(
-                      builder: (BuildContext context) {
-                        return CustomCircleButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                  builder: (context) => NotificationScreen()),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 5.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: imgList.asMap().entries.map((entry) {
+                            return Container(
+                              width: 8.0,
+                              height: 8.0,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(
+                                  _currentIndex == entry.key ? 1.0 : 0.4,
+                                ),
+                              ),
                             );
-                          },
-                          shape: BoxShape.rectangle,
-                          imagePath: 'assets/images/emojis/emoji(3).png',
-                          borderWidth: 0.5,
-                          borderRadius: 10.0,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 6,
-                              offset: const Offset(1, 1),
-                            ),
-                          ],
-                          text: "알림",
-                          textStyle: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.bold),
-                        );
-                      },
-                    ),
-                  ],
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Divider(
-                  color: Colors.grey,
-                  thickness: 0.5,
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 15.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomCircleButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => CommunityScreen()),
+                          );
+                        },
+                        shape: BoxShape.rectangle,
+                        imagePath: 'assets/images/emojis/emoji(4).png',
+                        borderWidth: 0.5, // 테두리 두께
+                        borderRadius: 10.0, // 둥글기 (사각형일 경우만 적용)
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 6,
+                            offset: const Offset(2, 1), // 그림자 위치
+                          ),
+                        ],
+                        text: "커뮤니티",
+                        textStyle: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      CustomCircleButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => EmploymentScreen()),
+                          );
+                        },
+                        shape: BoxShape.rectangle,
+                        imagePath: 'assets/images/emojis/emoji(2).png',
+                        borderWidth: 0.5, // 테두리 두께
+                        borderRadius: 10.0, // 둥글기 (사각형일 경우만 적용)
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 6,
+                            offset: const Offset(2, 1), // 그림자 위치
+                          ),
+                        ],
+                        text: "채용",
+                        textStyle: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.bold),
+                        padding: const EdgeInsets.all(3.0),
+                      ),
+                      CustomCircleButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => EventScreen()),
+                          );
+                        },
+                        shape: BoxShape.rectangle,
+                        imagePath: 'assets/images/emojis/emoji(1).png',
+                        borderWidth: 0.5, // 테두리 두께
+                        borderRadius: 10.0, // 둥글기 (사각형일 경우만 적용)
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 6,
+                            offset: const Offset(2, 2), // 그림자 위치
+                          ),
+                        ],
+                        text: "행사",
+                        textStyle: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Builder(
+                        builder: (BuildContext context) {
+                          return CustomCircleButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (context) => NotificationScreen()),
+                              );
+                            },
+                            shape: BoxShape.rectangle,
+                            imagePath: 'assets/images/emojis/emoji(3).png',
+                            borderWidth: 0.5,
+                            borderRadius: 10.0,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 6,
+                                offset: const Offset(1, 1),
+                              ),
+                            ],
+                            text: "알림",
+                            textStyle: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.bold),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Divider(
+                    color: Colors.grey,
+                    thickness: 0.5,
+                  ),
+                ),
 
-              /*
-                카테고리별 card widget
-              */
+                /*
+                  카테고리별 card widget
+                */
 
-              _buildSection(
-                context,
-                'assets/images/emojis/emoji(6).png',
-                '인기 게시물',
-                popularPosts,
-                150,
-              ),
-              SizedBox(height: 12),
-              _buildSection(
-                context,
-                'assets/images/emojis/emoji(8).png',
-                '진행중인 행사',
-                ongoingEvents,
-                220,
-              ),
-              SizedBox(height: 12),
-              _buildSection(
-                context,
-                'assets/images/emojis/emoji(7).png',
-                '최신 채용 정보',
-                latestJobs,
-                150,
-              ),
-            ],
+                _buildSection(
+                  context,
+                  'assets/images/emojis/emoji(6).png',
+                  '인기 게시물',
+                  popularPosts,
+                  150,
+                ),
+                SizedBox(height: 12),
+                _buildSection(
+                  context,
+                  'assets/images/emojis/emoji(8).png',
+                  '진행중인 행사',
+                  ongoingEvents,
+                  220,
+                ),
+                SizedBox(height: 12),
+                _buildSection(
+                  context,
+                  'assets/images/emojis/emoji(7).png',
+                  '최신 채용 정보',
+                  latestJobs,
+                  150,
+                ),
+              ],
+            ),
           ),
         ),
       ),

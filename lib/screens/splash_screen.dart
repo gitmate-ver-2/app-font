@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gitmate/component/colors.dart';
 import 'package:gitmate/screens/auth/sign_in_screen.dart';
+import 'package:gitmate/screens/home/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,20 +14,59 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const SignInScreen()),
-      );
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation =
+        Tween<double>(begin: 1.0, end: 0.0).animate(_animationController);
+
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    await Future.delayed(const Duration(seconds: 2));
+    _animationController.forward();
+
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (user != null) {
+          _navigateTo(const HomeScreen());
+        } else {
+          _navigateTo(const SignInScreen());
+        }
+      }
     });
+  }
+
+  void _navigateTo(Widget screen) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => screen,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
   void dispose() {
+    _animationController.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     super.dispose();
@@ -34,7 +76,28 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text("splash"),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/png/logo.png',
+                color: AppColors.MAINCOLOR,
+                width: 100,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "GitMate",
+                style: TextStyle(
+                  color: AppColors.MAINCOLOR,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

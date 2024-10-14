@@ -20,17 +20,17 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> signIn() async {
     try {
-      // await _auth.signInWithEmailAndPassword(
-      //   email: _emailController.text, // 컨트롤러의 텍스트 사용
-      //   password: _passwordController.text, // 컨트롤러의 텍스트 사용
-      // );
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text, // 컨트롤러의 텍스트 사용
+        password: _passwordController.text, // 컨트롤러의 텍스트 사용
+      );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? '로그인 실패')),
+        const SnackBar(content: Text('로그인 실패')),
       );
     }
   }

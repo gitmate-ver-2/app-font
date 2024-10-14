@@ -70,7 +70,9 @@ flutter:
   assets:
     - .env
     - assets/
+    - assets/images/
     - assets/images/png/
+    - assets/company/
     - assets/images/emojis/
     - assets/images/event_images/
   # assets:
