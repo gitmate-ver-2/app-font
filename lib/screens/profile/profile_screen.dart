@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gitmate/component/colors.dart';
+import 'package:gitmate/screens/profile/profile_edit_screen.dart';
 import 'package:gitmate/screens/widget/custom_appbar.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -10,6 +12,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  User? user = FirebaseAuth.instance.currentUser;
+  User? email;
+
   // 더미 데이터
   final Map<String, dynamic> _profileData = {
     'profileImage': 'assets/images/png/profile_image.png', // 프로필 이미지 경로
@@ -30,9 +35,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('접근할 수 없습니다.')),
-              );
+              // 현재 로그인된 사용자의 이메일이 admin@admin.com일 경우에만 실행
+              if (user?.email == 'admin@admin.com') {
+                // 여기서 원하는 액션 수행
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileEditScreen(),
+                  ),
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('프로필 수정 모드로 이동합니다.'),
+                  ),
+                );
+              } else {
+                // 그렇지 않으면 스낵바 표시
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('접근할 수 없습니다.')),
+                );
+              }
             },
             icon: Icon(Icons.edit, color: AppColors.MAINCOLOR),
           ),
@@ -62,13 +85,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 8),
 
             // 이메일
-            Text(
-              _profileData['email'],
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 16,
+            if (user != null)
+              Text(
+                '${user!.email}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              )
+            else
+              const Text(
+                '사용자 정보를 불러오지 못했습니다.',
+                style: TextStyle(color: Colors.red),
               ),
-            ),
             const SizedBox(height: 16),
 
             // 팔로워 / 팔로잉 수

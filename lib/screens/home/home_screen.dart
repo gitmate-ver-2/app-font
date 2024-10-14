@@ -8,7 +8,6 @@ import 'package:gitmate/screens/employment/employment_screen.dart';
 import 'package:gitmate/screens/event/event_screen.dart';
 import 'package:gitmate/screens/notification/notification_screen.dart';
 import 'package:gitmate/screens/profile/profile_screen.dart';
-import 'package:gitmate/screens/setting/setting_screen.dart';
 import 'package:gitmate/screens/widget/custom_appbar.dart';
 import 'package:gitmate/screens/widget/custom_circle_button.dart';
 
@@ -104,55 +103,131 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _showLogoutDialog() async {
+  // Future<void> _showLogoutDialog() async {
+  //   return showDialog<void>(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         backgroundColor: Colors.white,
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(10),
+  //         ),
+  //         title: const Text(
+  //           'Gitmate 로그아웃',
+  //           style: TextStyle(
+  //             color: Colors.black,
+  //             fontWeight: FontWeight.w500,
+  //           ),
+  //         ),
+  //         content: const SingleChildScrollView(
+  //           child: ListBody(
+  //             children: <Widget>[
+  //               Text('정말 로그아웃 하시겠습니까?'),
+  //             ],
+  //           ),
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             child: const Text(
+  //               '취소',
+  //               style: TextStyle(
+  //                 color: Colors.black,
+  //               ),
+  //             ),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //           TextButton(
+  //             child: const Text(
+  //               '확인',
+  //               style: TextStyle(
+  //                 color: Colors.black,
+  //               ),
+  //             ),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //               _signOut();
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+  Future<void> _showPasswordConfirmationDialog() async {
+    TextEditingController passwordController = TextEditingController();
+    bool isPasswordCorrect = true; // 비밀번호가 틀렸을 때 에러 메시지를 위한 상태
+
     return showDialog<void>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: false, // 다이얼로그 외부를 눌러서 닫을 수 없게 설정
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          title: const Text(
-            'Gitmate 로그아웃',
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          content: const SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('정말 로그아웃 하시겠습니까?'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              title: const Text(
+                'Gitmate 로그아웃',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    const Text('로그아웃하기 전에 비밀번호를 입력해주세요.'),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: '비밀번호',
+                        errorText:
+                            !isPasswordCorrect ? '비밀번호가 올바르지 않습니다.' : null,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    '확인',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  onPressed: () {
+                    if (passwordController.text == '20071018') {
+                      // 비밀번호가 맞으면 로그아웃 처리
+                      Navigator.of(context).pop();
+                      _signOut();
+                    } else {
+                      // 비밀번호가 틀리면 에러 메시지 표시
+                      setState(() {
+                        isPasswordCorrect = false;
+                      });
+                    }
+                  },
+                ),
               ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '취소',
-                style: TextStyle(
-                  color: Colors.black,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '확인',
-                style: TextStyle(
-                  color: Colors.black,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _signOut();
-              },
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -215,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('로그아웃'),
               onTap: () {
                 Navigator.pop(context);
-                _showLogoutDialog();
+                _showPasswordConfirmationDialog();
               },
             ),
           ],

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gitmate/component/colors.dart';
 import 'package:gitmate/screens/widget/custom_appbar.dart';
@@ -10,6 +11,9 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  User? user = FirebaseAuth.instance.currentUser;
+  User? email;
+
   // 더미 알림 데이터
   final List<Map<String, dynamic>> notifications = [
     {
@@ -53,8 +57,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
         ),
+        actions: user?.email == 'admin@admin.com'
+            ? [
+                IconButton(
+                  onPressed: () {
+                    // 알림 추가 로직
+                  },
+                  icon: const Icon(Icons.notification_add),
+                ),
+              ]
+            : null, // admin이 아니면 null로 표시하지 않음
       ),
       body: RefreshIndicator(
         backgroundColor: AppColors.BACKGROUNDCOLOR,
