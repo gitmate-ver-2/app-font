@@ -67,6 +67,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: '커뮤니티',
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         actions: [
           IconButton(
             onPressed: () {

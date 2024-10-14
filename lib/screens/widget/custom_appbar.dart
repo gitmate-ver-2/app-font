@@ -10,6 +10,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double elevation; // 앱바 그림자 높이
   final double scrolledUnderElevation;
   final List<Widget>? actions; // 앱바에 표시할 액션 위젯들
+  final Widget? leading; // 리딩 위젯을 커스텀 가능하게
+  final String? logoPath; // 로고 이미지 경로
 
   const CustomAppBar({
     super.key,
@@ -21,6 +23,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.elevation = 1.0, // 기본 그림자 높이
     this.scrolledUnderElevation = 1.0,
     this.actions, // 추가된 액션 위젯 리스트
+    this.leading, // 리딩 커스텀 위젯
+    this.logoPath, // 로고 이미지 경로 (null 가능)
   });
 
   @override
@@ -31,10 +35,23 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(
-        title,
-        style: titleStyle, // 전달받은 스타일로 타이틀 스타일 지정
+      title: Row(
+        children: [
+          if (logoPath != null && logoPath!.isNotEmpty) // 로고 경로가 존재하면 표시
+            Image.asset(
+              logoPath!,
+              color: AppColors.MAINCOLOR,
+              width: 30,
+            ),
+          if (logoPath != null && logoPath!.isNotEmpty) // 로고가 있을 때만 간격 추가
+            const SizedBox(width: 5),
+          Text(
+            title,
+            style: titleStyle, // 전달받은 스타일로 타이틀 스타일 지정
+          ),
+        ],
       ),
+      leading: leading, // 기본 뒤로가기 버튼
       centerTitle: centerTitle,
       backgroundColor: backgroundColor,
       elevation: elevation,

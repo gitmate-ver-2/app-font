@@ -94,6 +94,12 @@ class _EventScreenState extends State<EventScreen> {
         elevation: 0,
         scrolledUnderElevation: 1,
         title: '행사',
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -102,7 +108,7 @@ class _EventScreenState extends State<EventScreen> {
               );
             },
             icon: Icon(
-              Icons.edit_calendar_outlined,
+              Icons.edit_calendar_rounded,
               color: AppColors.MAINCOLOR,
             ),
           ),
@@ -209,26 +215,26 @@ class _EventScreenState extends State<EventScreen> {
                             color: Colors.grey,
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        // 버튼들 (좋아요, 댓글)
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.thumb_up_alt_outlined),
-                              color: Colors.blue,
-                              onPressed: () {
-                                // 좋아요 버튼 동작
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.comment_outlined),
-                              color: Colors.blue,
-                              onPressed: () {
-                                // 댓글 버튼 동작
-                              },
-                            ),
-                          ],
-                        ),
+                        // const SizedBox(height: 10),
+                        // // 버튼들 (좋아요, 댓글)
+                        // Row(
+                        //   children: [
+                        //     IconButton(
+                        //       icon: const Icon(Icons.thumb_up_alt_outlined),
+                        //       color: Colors.blue,
+                        //       onPressed: () {
+                        //         // 좋아요 버튼 동작
+                        //       },
+                        //     ),
+                        //     IconButton(
+                        //       icon: const Icon(Icons.comment_outlined),
+                        //       color: Colors.blue,
+                        //       onPressed: () {
+                        //         // 댓글 버튼 동작
+                        //       },
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),

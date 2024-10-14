@@ -45,10 +45,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         elevation: 0,
         scrolledUnderElevation: 1,
         title: "알림",
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
       ),
       body: RefreshIndicator(
         backgroundColor: AppColors.BACKGROUNDCOLOR,

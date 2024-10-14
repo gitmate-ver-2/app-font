@@ -88,15 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // 여기서는 2초 대기하는 예시를 사용했습니다.
     await Future.delayed(const Duration(seconds: 2));
     Navigator.pushAndRemoveUntil(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const HomeScreen(),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-      ),
-      (Route<dynamic> route) => false,
-    );
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const HomeScreen(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+        (Route<dynamic> route) => false);
 
     if (mounted) {
       setState(() {
@@ -165,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: CustomAppBar(
         elevation: 0,
         scrolledUnderElevation: 1,
+        logoPath: 'assets/images/png/logo.png',
         title: "GITMATE",
         titleStyle: TextStyle(
           color: AppColors.MAINCOLOR,
@@ -239,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       CarouselSlider(
                         options: CarouselOptions(
-                          height: MediaQuery.of(context).size.height * 0.25,
+                          height: MediaQuery.of(context).size.height * 0.3,
                           viewportFraction: 1,
                           autoPlay: true,
                           autoPlayInterval: const Duration(seconds: 5),
