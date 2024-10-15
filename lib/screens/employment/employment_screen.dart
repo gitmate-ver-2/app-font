@@ -210,9 +210,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                         company: company,
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('Tapped on ${company.companyName}')),
+                            SnackBar(content: Text('${company.companyName}')),
                           );
                         },
                       );

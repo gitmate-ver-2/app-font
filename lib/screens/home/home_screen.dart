@@ -1,3 +1,60 @@
+// Future<void> _showLogoutDialog() async {
+//   return showDialog<void>(
+//     context: context,
+//     barrierDismissible: false,
+//     builder: (BuildContext context) {
+//       return AlertDialog(
+//         backgroundColor: Colors.white,
+//         shape: RoundedRectangleBorder(
+//           borderRadius: BorderRadius.circular(10),
+//         ),
+//         title: const Text(
+//           'Gitmate 로그아웃',
+//           style: TextStyle(
+//             color: Colors.black,
+//             fontWeight: FontWeight.w500,
+//           ),
+//         ),
+//         content: const SingleChildScrollView(
+//           child: ListBody(
+//             children: <Widget>[
+//               Text('정말 로그아웃 하시겠습니까?'),
+//             ],
+//           ),
+//         ),
+//         actions: <Widget>[
+//           TextButton(
+//             child: const Text(
+//               '취소',
+//               style: TextStyle(
+//                 color: Colors.black,
+//               ),
+//             ),
+//             onPressed: () {
+//               Navigator.of(context).pop();
+//             },
+//           ),
+//           TextButton(
+//             child: const Text(
+//               '확인',
+//               style: TextStyle(
+//                 color: Colors.black,
+//               ),
+//             ),
+//             onPressed: () {
+//               Navigator.of(context).pop();
+//               _signOut();
+//             },
+//           ),
+//         ],
+//       );
+//     },
+//   );
+// }
+
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
     {'title': 'UI 디자인 팁', 'image': 'assets/images/event_images/event(4).gif'},
   ];
 
-  // 더미 데이터: 진행 중인 행사
   final List<Map<String, String>> ongoingEvents = [
     {
       'title': 'Googel I/O Ex 2024 Incheon',
@@ -59,14 +115,30 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
-  // 더미 데이터: 최신 채용 정보
-  final List<Map<String, String>> latestJobs = [
-    {'title': '백프로 채용', 'image': 'assets/company/company(1).png'},
-    {'title': '파마브로스', 'image': 'assets/company/company(2).png'},
-    {'title': '알고케어', 'image': 'assets/company/company(3).png'},
-  ];
+  List<Map<String, dynamic>> latestJobs = [];
 
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLatestJobs();
+  }
+
+  Future<void> _fetchLatestJobs() async {
+    final awsUrl = dotenv.env['AWS_URL'];
+    final response = await http.get(Uri.parse('$awsUrl/company_info'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        latestJobs =
+            data.take(10).map((job) => job as Map<String, dynamic>).toList();
+      });
+    } else {
+      print('Failed to load jobs');
+    }
+  }
 
   Future<void> _signOut() async {
     await _auth.signOut();
@@ -102,60 +174,6 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-
-  // Future<void> _showLogoutDialog() async {
-  //   return showDialog<void>(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         backgroundColor: Colors.white,
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(10),
-  //         ),
-  //         title: const Text(
-  //           'Gitmate 로그아웃',
-  //           style: TextStyle(
-  //             color: Colors.black,
-  //             fontWeight: FontWeight.w500,
-  //           ),
-  //         ),
-  //         content: const SingleChildScrollView(
-  //           child: ListBody(
-  //             children: <Widget>[
-  //               Text('정말 로그아웃 하시겠습니까?'),
-  //             ],
-  //           ),
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             child: const Text(
-  //               '취소',
-  //               style: TextStyle(
-  //                 color: Colors.black,
-  //               ),
-  //             ),
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //           ),
-  //           TextButton(
-  //             child: const Text(
-  //               '확인',
-  //               style: TextStyle(
-  //                 color: Colors.black,
-  //               ),
-  //             ),
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //               _signOut();
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   Future<void> _showPasswordConfirmationDialog() async {
     TextEditingController passwordController = TextEditingController();
@@ -513,7 +531,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   220,
                 ),
                 SizedBox(height: 12),
-                _buildSection(
+                _buildCompanySection(
                   context,
                   'assets/images/emojis/emoji(7).png',
                   '최신 채용 정보',
@@ -523,6 +541,104 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompanySection(BuildContext context, String iconPath,
+      String title, List<Map<String, dynamic>> items, double itemWidth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Row(
+            children: [
+              Image.asset(iconPath, width: 24, height: 24),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 220,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: _buildCompanyCard(context, item, itemWidth),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompanyCard(
+      BuildContext context, Map<String, dynamic> item, double width) {
+    return Container(
+      width: width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              item['image_url'] ?? '',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(color: Colors.grey);
+              },
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  ),
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  item['company_name'] ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

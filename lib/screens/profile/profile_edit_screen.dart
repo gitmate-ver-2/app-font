@@ -15,10 +15,13 @@ class ProfileEditScreen extends StatefulWidget {
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final TextEditingController _nicknameController = TextEditingController();
-  File? _image;
-  final picker = ImagePicker();
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final picker = ImagePicker();
+  File? _image;
+  String? _profileImageUrl;
 
   @override
   void initState() {
@@ -29,12 +32,26 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Future<void> _loadUserProfile() async {
     User? user = _auth.currentUser;
     if (user != null) {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(user.uid).get();
-      if (userDoc.exists) {
-        setState(() {
-          _nicknameController.text = userDoc['nickname'] ?? '';
-        });
+      try {
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          setState(() {
+            _nicknameController.text =
+                (userDoc.data() as Map<String, dynamic>)['nickname'] ?? '';
+            _bioController.text =
+                (userDoc.data() as Map<String, dynamic>)['bio'] ?? '';
+            _emailController.text = user.email ?? '';
+            _profileImageUrl =
+                (userDoc.data() as Map<String, dynamic>)['profileImageUrl'];
+          });
+        }
+      } catch (e) {
+        print('Error loading user profile: $e');
+        // 오류 발생 시 사용자에게 알림
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필 로딩 중 오류가 발생했습니다.')),
+        );
       }
     }
   }
@@ -44,6 +61,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
+        _profileImageUrl = null;
       }
     });
   }
@@ -52,6 +70,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     User? user = _auth.currentUser;
     if (user != null) {
       String? imageUrl;
+
       if (_image != null) {
         Reference ref =
             FirebaseStorage.instance.ref().child('user_profiles/${user.uid}');
@@ -60,14 +79,30 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         imageUrl = await taskSnapshot.ref.getDownloadURL();
       }
 
-      await _firestore.collection('users').doc(user.uid).set({
+      Map<String, dynamic> updateData = {
         'nickname': _nicknameController.text,
-        'profileImageUrl': imageUrl,
-      }, SetOptions(merge: true));
+        'bio': _bioController.text,
+      };
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('프로필이 업데이트되었습니다.')),
-      );
+      if (imageUrl != null) {
+        updateData['profileImageUrl'] = imageUrl;
+      }
+
+      try {
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(updateData, SetOptions(merge: true));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필이 업데이트되었습니다.')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        print('Error saving profile: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필 저장 중 오류가 발생했습니다.')),
+        );
+      }
     }
   }
 
@@ -82,28 +117,67 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            SizedBox(height: 20),
             GestureDetector(
               onTap: _getImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: _image != null ? FileImage(_image!) : null,
-                child:
-                    _image == null ? Icon(Icons.add_a_photo, size: 50) : null,
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundImage: _image != null
+                        ? FileImage(_image!)
+                        : (_profileImageUrl != null
+                            ? NetworkImage(_profileImageUrl!)
+                            : null) as ImageProvider?,
+                    child: (_image == null && _profileImageUrl == null)
+                        ? Icon(Icons.person, size: 60)
+                        : null,
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.edit, color: Colors.white, size: 20),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             TextField(
               controller: _nicknameController,
               decoration: InputDecoration(
                 labelText: '닉네임',
-                border: OutlineInputBorder(),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                prefixIcon: Icon(Icons.person),
               ),
             ),
             SizedBox(height: 20),
+            TextField(
+              controller: _bioController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: '자기소개',
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                prefixIcon: Icon(Icons.description),
+              ),
+            ),
+            SizedBox(height: 30),
             ElevatedButton(
               onPressed: _saveProfile,
-              child: Text('저장'),
+              child: Text('저장하기'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
           ],
         ),

@@ -13,7 +13,8 @@ class CustomTextField extends StatelessWidget {
   final Color textColor; // 텍스트 색상
   final Color iconColor; // 아이콘 색상
   final bool obscureText; // 비밀번호 입력 여부
-  final TextEditingController? controller;
+  final TextEditingController? controller; // 컨트롤러
+  final bool enabled; // 입력 가능 여부
 
   const CustomTextField({
     super.key,
@@ -25,11 +26,13 @@ class CustomTextField extends StatelessWidget {
     this.iconColor = Colors.grey, // 기본 아이콘 색상
     this.obscureText = false, // 기본 값: 텍스트 숨기지 않음
     this.controller,
+    this.enabled = true, // 기본적으로 입력 가능
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: enabled, // enabled 속성을 외부에서 설정할 수 있도록
       controller: controller,
       obscureText: obscureText,
       cursorColor: cursorColor,

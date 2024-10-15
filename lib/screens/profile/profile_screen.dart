@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gitmate/component/colors.dart';
@@ -13,17 +14,37 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   User? user = FirebaseAuth.instance.currentUser;
-  User? email;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  Map<String, dynamic>? profileData;
 
-  // 더미 데이터
-  final Map<String, dynamic> _profileData = {
-    'profileImage': 'assets/images/png/profile_image.png', // 프로필 이미지 경로
-    'username': 'jinhyeon-dev', // 사용자 이름
-    'email': 'jinhyeon.dev@gmail.com', // 사용자 이메일
-    'followers': 10, // 팔로워 수
-    'following': 18, // 팔로잉 수
-    'bio': 'Flutter 개발자이자 GitMate 프로젝트의 개발자입니다.', // 사용자 소개
-  };
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    if (user != null) {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user!.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          profileData = userDoc.data() as Map<String, dynamic>?;
+        });
+      } else {
+        // 프로필 정보가 없을 경우 기본 값 설정
+        setState(() {
+          profileData = {
+            'profileImageUrl': 'assets/images/png/profile_image.png',
+            'nickname': user!.displayName ?? '사용자 이름 없음',
+            'followers': 0,
+            'following': 0,
+            'bio': '자기 소개가 없습니다.',
+          };
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,21 +58,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () {
               // 현재 로그인된 사용자의 이메일이 admin@admin.com일 경우에만 실행
               if (user?.email == 'admin@admin.com') {
-                // 여기서 원하는 액션 수행
+                // 프로필 수정 화면으로 이동
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProfileEditScreen(),
-                  ),
-                );
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('프로필 수정 모드로 이동합니다.'),
+                    builder: (context) => const ProfileEditScreen(),
                   ),
                 );
               } else {
-                // 그렇지 않으면 스낵바 표시
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => const ProfileEditScreen(),
+                //   ),
+                // );
+                // 그렇지 않으면 접근 불가 스낵바 표시
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('접근할 수 없습니다.')),
                 );
@@ -62,89 +83,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(width: 10),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // 프로필 이미지
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage(_profileData['profileImage']),
-            ),
-            const SizedBox(height: 16),
+      body: profileData == null
+          ? Center(
+              child: CircularProgressIndicator(
+              color: AppColors.MAINCOLOR,
+              backgroundColor: AppColors.BACKGROUNDCOLOR,
+            ))
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 프로필 이미지
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: profileData?['profileImageUrl'] != null
+                        ? NetworkImage(profileData!['profileImageUrl'])
+                        : AssetImage('assets/images/png/profile_image.png')
+                            as ImageProvider,
+                  ),
+                  const SizedBox(height: 16),
 
-            // 사용자 이름
-            Text(
-              _profileData['username'],
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // 이메일
-            if (user != null)
-              Text(
-                '${user!.email}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              )
-            else
-              const Text(
-                '사용자 정보를 불러오지 못했습니다.',
-                style: TextStyle(color: Colors.red),
-              ),
-            const SizedBox(height: 16),
-
-            // 팔로워 / 팔로잉 수
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(
-                  children: [
-                    Text(
-                      _profileData['followers'].toString(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
+                  // 사용자 이름
+                  Text(
+                    profileData?['nickname'] ?? '이름 없음',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
                     ),
-                    const Text('팔로워'),
-                  ],
-                ),
-                const SizedBox(width: 40),
-                Column(
-                  children: [
-                    Text(
-                      _profileData['following'].toString(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    const Text('팔로잉'),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+                  ),
+                  const SizedBox(height: 8),
 
-            // 사용자 소개
-            Text(
-              _profileData['bio'],
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
+                  // 이메일
+                  Text(
+                    user?.email ?? '이메일 없음',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 팔로워 / 팔로잉 수
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            '10',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const Text('팔로워'),
+                        ],
+                      ),
+                      const SizedBox(width: 40),
+                      Column(
+                        children: [
+                          Text(
+                            '18',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const Text('팔로잉'),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 사용자 소개
+                  Text(
+                    profileData?['bio'] ?? '자기 소개가 없습니다.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

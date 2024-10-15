@@ -63,7 +63,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ? [
                 IconButton(
                   onPressed: () {
-                    // 알림 추가 로직
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('접근할 수 없습니다.')),
+                    );
                   },
                   icon: const Icon(Icons.notification_add),
                 ),
