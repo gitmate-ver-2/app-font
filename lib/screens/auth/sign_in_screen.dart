@@ -25,12 +25,10 @@ class _SignInScreenState extends State<SignInScreen> {
         password: _passwordController.text, // 컨트롤러의 텍스트 사용
       );
       Navigator.pushReplacement(
-        // ignore: use_build_context_synchronously
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } on FirebaseAuthException {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('로그인 실패')),
       );
